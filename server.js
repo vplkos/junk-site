@@ -33,7 +33,7 @@ try {
   visitors = 0;
 }
 
-// 访客记录：最近 20 条，启动时读文件
+// 访客记录只存服务端（不展示给所有人看），最近 20 条，启动时读文件
 const logFile = path.join(__dirname, 'visits.json');
 let recent = [];
 try {
@@ -138,15 +138,9 @@ async function enrich(visit) {
   saveRecent();
 }
 
-function renderVisitors() {
-  if (!recent.length) return '<tr><td colspan="7">还没有访客</td></tr>';
-  return recent.slice().reverse().map((v) => {
-    const extra = [v.screen ? '屏幕' + v.screen : '', v.lang ? '语言' + v.lang : '', v.tz ? '时区' + v.tz : ''].filter(Boolean).join('<br>') || '-';
-    return '<tr><td>' + esc(v.time) + '</td><td>' + esc(v.ip) + '<br>第' + (v.n || 1) + '次</td><td>' + esc(v.loc || '查询中…') + (v.isp ? '<br>' + esc(v.isp) : '') + '<br>' + esc(v.weather || '查询中…') + '</td><td>' + esc(v.browser) + '<br>' + esc(v.os) + '<br>' + esc(v.device) + '</td><td>' + extra + '</td><td>' + esc(v.path) + '</td><td>' + esc(v.ref || '-') + '</td></tr>';
-  }).join('');
-}
+// （访客自己的信息直接注入原表格各行，不另设标题栏）
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   // 浏览器上报屏幕/语言/时区：不计数，只补到最近一次同 IP 访问上
   if (req.url === '/ping' && req.method === 'POST') {
     let body = '';
@@ -205,12 +199,17 @@ const server = http.createServer((req, res) => {
   if (recent.length > 20) recent = recent.slice(-20);
   saveRecent();
   console.log('访客 #' + visitors, visit.time, visit.ip, visit.browser, visit.os);
-  enrich(visit);
+
+  // 等归属地/天气查完再返回（最多等 3.5 秒，超时就先返回，查到后只记服务端）
+  await Promise.race([enrich(visit), new Promise((r) => setTimeout(r, 3500))]);
 
   const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
   const numbered = html
     .replace('<span class="counter">000001</span>', '<span class="counter">' + String(visitors).padStart(6, '0') + '</span>')
-    .replace('<!--VISITORS-->', renderVisitors());
+    .replace('<!--WEATHER-->', esc(visit.weather || '查询中…'))
+    .replace('<!--MYIP-->', esc(visit.ip) + '（第' + (visit.n || 1) + '次来）')
+    .replace('<!--MYLOC-->', esc(visit.loc || '查询中…') + (visit.isp ? ' / ' + esc(visit.isp) : ''))
+    .replace('<!--MYBROWSER-->', esc(visit.browser) + ' / ' + esc(visit.os) + ' / ' + esc(visit.device));
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
   res.end(numbered);
 });

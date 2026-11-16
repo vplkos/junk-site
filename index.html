@@ -24,23 +24,29 @@
 <p class="rainbow">Abasthan 免费档测试页</p>
 <hr>
 <table>
-  <tr><td>今日天气</td><td>不知道</td></tr>
+  <tr><td>今日天气</td><td><!--WEATHER--></td></tr>
   <tr><td>站长心情</td><td>很好</td></tr>
   <tr><td>本站内容</td><td>没有内容</td></tr>
+  <tr><td>你的 IP</td><td><!--MYIP--></td></tr>
+  <tr><td>你的归属地</td><td><!--MYLOC--></td></tr>
+  <tr><td>你的浏览器</td><td><!--MYBROWSER--></td></tr>
+  <tr><td>你的屏幕</td><td><span id="my-screen">检测中…</span></td></tr>
+  <tr><td>你的语言</td><td><span id="my-lang">检测中…</span></td></tr>
+  <tr><td>你的时区</td><td><span id="my-tz">检测中…</span></td></tr>
 </table>
 <p>您是第 <span class="counter">000001</span> 位访客</p>
-<h2 style="color:#0000ff;font-size:32px;">最近访客</h2>
-<table>
-  <tr><td>时间</td><td>IP</td><td>归属地·天气</td><td>浏览器/系统/设备</td><td>屏幕·语言·时区</td><td>访问地址</td><td>来源</td></tr>
-  <!--VISITORS-->
-</table>
 <p>🚧🚧🚧 施工中 敬请期待 🚧🚧🚧</p>
 <hr>
 <p class="small">最佳分辨率 800x600 · 推荐使用 Netscape Navigator 4.0 浏览本站<br>
 本站最后更新：1999年 · © 垃圾站 版权所有 翻录必究</p>
 <marquee direction="right" scrollamount="12" style="font-size:24px;color:#0000ff;">谢谢惠顾 谢谢惠顾 谢谢惠顾</marquee>
 <script>
-fetch('/ping', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({w: screen.width, h: screen.height, lang: navigator.language, tz: Intl.DateTimeFormat().resolvedOptions().timeZone})}).catch(function(){});
+var info = {w: screen.width, h: screen.height, lang: navigator.language, tz: Intl.DateTimeFormat().resolvedOptions().timeZone};
+fetch('/ping', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(info)}).catch(function(){});
+var el;
+el = document.getElementById('my-screen'); if (el) el.textContent = info.w + 'x' + info.h;
+el = document.getElementById('my-lang'); if (el) el.textContent = info.lang;
+el = document.getElementById('my-tz'); if (el) el.textContent = info.tz;
 </script>
 </body>
 </html>
