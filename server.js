@@ -165,6 +165,13 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // 健康检查：保活用，不计数、不记日志
+  if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('ok');
+    return;
+  }
+
   // favicon 不计数
   if (req.url === '/favicon.ico') {
     res.writeHead(204);
