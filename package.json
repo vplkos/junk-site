@@ -1,0 +1,1 @@
+{"description":"junk site","engines":{"node":">=18"},"main":"server.js","name":"junk-site","scripts":{"start":"node server.js"},"version":"1.0.0"}
